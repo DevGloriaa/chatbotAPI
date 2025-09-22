@@ -20,7 +20,7 @@ Follow these steps to run the Chat API locally:
 
 # 1. Clone the repository
 ```
-git clone https://github.com/yourusername/kos-chat-api.git
+git clone https://github.com/DevGloriaa/chatbotAPI.git
 cd kos-chat-api
 ```
 
