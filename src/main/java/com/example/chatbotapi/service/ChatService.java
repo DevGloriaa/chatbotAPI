@@ -1,5 +1,7 @@
 package com.example.chatbotapi.service;
 
+import com.example.chatbotapi.dto.ChatResponse;
+
 public interface ChatService {
-    String getChatResponse(String message);
+    ChatResponse getChatResponse(String message);
 }

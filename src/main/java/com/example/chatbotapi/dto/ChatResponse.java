@@ -1,19 +1,19 @@
 package com.example.chatbotapi.dto;
 
 public class ChatResponse {
-    private String response;
+    private String message;
 
     public ChatResponse() {}
 
-    public ChatResponse(String response) {
-        this.response = response;
+    public ChatResponse(String message) {
+        this.message = message;
     }
 
-    public String getResponse() {
-        return response;
+    public String getMessage() {
+        return message;
     }
 
-    public void setResponse(String response) {
-        this.response = response;
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

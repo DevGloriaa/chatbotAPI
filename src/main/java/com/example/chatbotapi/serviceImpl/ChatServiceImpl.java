@@ -26,17 +26,22 @@ public class ChatServiceImpl implements ChatService {
             }
         """.formatted(message);
 
-        HuggingFaceResponse[] hfResponse = webClient.post()
-                .header("Authorization", "Bearer " + apiKey)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(HuggingFaceResponse[].class)
-                .block();
+        try {
+            HuggingFaceResponse[] hfResponse = webClient.post()
+                    .header("Authorization", "Bearer " + apiKey)
+                    .header("Accept", "application/json")
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(HuggingFaceResponse[].class)
+                    .block();
 
-        if (hfResponse != null && hfResponse.length > 0) {
-            return new ChatResponse(hfResponse[0].getGeneratedText());
-        } else {
-            return new ChatResponse("Sorry, I couldn’t generate a response.");
+            if (hfResponse != null && hfResponse.length > 0) {
+                return new ChatResponse(hfResponse[0].getGeneratedText());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        return new ChatResponse("Sorry, I couldn’t generate a response.");
     }
 }
