@@ -3,20 +3,25 @@ package com.example.chatbotapi.serviceImpl;
 import com.example.chatbotapi.dto.ChatResponse;
 import com.example.chatbotapi.dto.HuggingFaceResponse;
 import com.example.chatbotapi.service.ChatService;
-import org.springframework.beans.factory.annotation.Value;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    @Value("${huggingface.api.key}")
-    private String apiKey;
+    private final String apiKey;
+    private final WebClient webClient;
 
-    private final WebClient webClient = WebClient.builder()
-            .baseUrl("https://api-inference.huggingface.co/models/gpt2")
-            .defaultHeader("Content-Type", "application/json")
-            .build();
+    public ChatServiceImpl() {
+        Dotenv dotenv = Dotenv.load();
+        this.apiKey = dotenv.get("HF_API_KEY");
+
+        this.webClient = WebClient.builder()
+                .baseUrl("https://api-inference.huggingface.co/models/gpt2")
+                .defaultHeader("Content-Type", "application/json")
+                .build();
+    }
 
     @Override
     public ChatResponse getChatResponse(String message) {
