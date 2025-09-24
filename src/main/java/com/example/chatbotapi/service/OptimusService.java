@@ -6,5 +6,6 @@ import com.example.chatbotapi.dto.Task;
 import java.util.List;
 
 public interface OptimusService {
-    List<Task> getTodayTasks();
-}
+        List<Task> getTodayTasks(String bearerToken);
+    }
+

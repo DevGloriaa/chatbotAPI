@@ -33,25 +33,6 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatResponse getChatResponse(String message) {
         try {
-            if (message.toLowerCase().contains("today's tasks")
-                    || message.toLowerCase().contains("scheduled for today")
-                    || message.toLowerCase().contains("tasks for today")) {
-
-                List<Task> tasks = optimusService.getTodayTasks();
-
-                if (tasks == null || tasks.isEmpty()) {
-                    return new ChatResponse("You have no tasks scheduled for today 🎉");
-                }
-
-                StringBuilder reply = new StringBuilder("Here’s your schedule for today:\n");
-                tasks.forEach(task -> reply.append("- ")
-                        .append(task.getDueDate() != null ? task.getDueDate() + " " : "")
-                        .append(task.getTitle())
-                        .append("\n"));
-
-                return new ChatResponse(reply.toString());
-            }
-
             String requestBody = """
                 {
                     "inputs": "%s"
@@ -69,6 +50,38 @@ public class ChatServiceImpl implements ChatService {
             if (hfResponse != null && hfResponse.length > 0) {
                 return new ChatResponse(hfResponse[0].getGeneratedText());
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new ChatResponse("Sorry, I couldn’t generate a response.");
+    }
+
+    @Override
+    public ChatResponse getChatResponse(String message, String authHeader) {
+        try {
+            if (message.toLowerCase().contains("today's tasks")
+                    || message.toLowerCase().contains("scheduled for today")
+                    || message.toLowerCase().contains("tasks for today")) {
+
+                List<Task> tasks = optimusService.getTodayTasks(authHeader);
+
+                if (tasks == null || tasks.isEmpty()) {
+                    return new ChatResponse("You have no tasks scheduled for today 🎉");
+                }
+
+                StringBuilder reply = new StringBuilder("Here’s your schedule for today:\n");
+                tasks.forEach(task -> reply.append("- ")
+                        .append(task.getTime() != null ? task.getTime() + " " : "")
+                        .append(task.getTitle())
+                        .append(" (")
+                        .append(task.getDate() != null ? task.getDate() : "no date")
+                        .append(")")
+                        .append("\n"));
+
+                return new ChatResponse(reply.toString());
+            }
+
+            return getChatResponse(message);
 
         } catch (Exception e) {
             e.printStackTrace();
