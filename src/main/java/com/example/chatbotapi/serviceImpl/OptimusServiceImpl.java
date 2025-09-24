@@ -5,11 +5,14 @@ import com.example.chatbotapi.service.OptimusService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class OptimusServiceImpl implements OptimusService {
+
     private final WebClient webClient;
 
     public OptimusServiceImpl(WebClient.Builder builder) {
@@ -18,12 +21,21 @@ public class OptimusServiceImpl implements OptimusService {
 
     @Override
     public List<Task> getTodayTasks(String bearerToken) {
-        return webClient.get()
-                .uri("/tasks/today")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
-                .retrieve()
-                .bodyToFlux(Task.class)
-                .collectList()
-                .block();
+        try {
+            return webClient.get()
+                    .uri("/tasks/today")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                    .retrieve()
+                    .bodyToFlux(Task.class)
+                    .collectList()
+                    .block();
+        } catch (WebClientResponseException e) {
+            // handle 401/403/404 errors gracefully
+            System.err.println("Error fetching today's tasks: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            System.err.println("Unexpected error fetching today's tasks: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 }

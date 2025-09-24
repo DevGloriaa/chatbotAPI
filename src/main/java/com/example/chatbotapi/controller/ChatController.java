@@ -18,13 +18,15 @@ public class ChatController {
     }
 
     @PostMapping
-    public ChatResponse chat(@RequestBody ChatRequest request) {
-        return chatService.getChatResponse(request.getMessage());
+    public ChatResponse chat(@RequestBody ChatRequest request,
+                             @RequestHeader("Authorization") String authHeader) {
+        return chatService.getChatResponse(request.getMessage(), authHeader);
     }
 
-    @PostMapping("/with-token")
-    public ChatResponse chatWithToken(@RequestBody Map<String, String> payload,
-                                      @RequestHeader("Authorization") String authHeader) {
+
+    @PostMapping("/chat")
+    public ChatResponse chatMap(@RequestBody Map<String, String> payload,
+                                @RequestHeader("Authorization") String authHeader) {
         String message = payload.get("message");
         return chatService.getChatResponse(message, authHeader);
     }
