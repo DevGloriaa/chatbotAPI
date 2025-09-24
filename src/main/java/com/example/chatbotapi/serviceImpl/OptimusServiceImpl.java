@@ -30,7 +30,6 @@ public class OptimusServiceImpl implements OptimusService {
                     .collectList()
                     .block();
         } catch (WebClientResponseException e) {
-            // handle 401/403/404 errors gracefully
             System.err.println("Error fetching today's tasks: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
             return Collections.emptyList();
         } catch (Exception e) {
