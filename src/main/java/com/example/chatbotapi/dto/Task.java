@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 @Data
 public class Task {
-    private Long id;
+    private String id;
     private String title;
     private LocalDate date;
     private String time;
