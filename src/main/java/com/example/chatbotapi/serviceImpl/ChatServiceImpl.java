@@ -33,7 +33,10 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public ChatResponse getChatResponse(String message) {
         try {
-            if (message.toLowerCase().contains("scheduled for today")) {
+            if (message.toLowerCase().contains("today's tasks")
+                    || message.toLowerCase().contains("scheduled for today")
+                    || message.toLowerCase().contains("tasks for today")) {
+
                 List<Task> tasks = optimusService.getTodayTasks();
 
                 if (tasks == null || tasks.isEmpty()) {
@@ -42,12 +45,12 @@ public class ChatServiceImpl implements ChatService {
 
                 StringBuilder reply = new StringBuilder("Here’s your schedule for today:\n");
                 tasks.forEach(task -> reply.append("- ")
-                        .append(task.getTime() != null ? task.getTime() + " " : "")
+                        .append(task.getDueDate() != null ? task.getDueDate() + " " : "")
                         .append(task.getTitle())
                         .append("\n"));
+
                 return new ChatResponse(reply.toString());
             }
-
 
             String requestBody = """
                 {
