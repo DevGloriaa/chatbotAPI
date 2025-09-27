@@ -35,11 +35,15 @@ public class ChatServiceImpl implements ChatService {
                 for (Task task : tasks) {
                     reply.append("- ")
                             .append(task.getTime() != null ? task.getTime() + " " : "")
-                            .append(task.getTitle())
-                            .append(" (")
-                            .append(task.getDate() != null ? task.getDate() : "no date")
-                            .append(")\n");
+                            .append(task.getTitle());
+
+                    if (task.getDate() != null) {
+                        reply.append(" (").append(task.getDate()).append(")");
+                    }
+
+                    reply.append("\n");
                 }
+
 
                 return new ChatResponse(reply.toString());
             } else {
