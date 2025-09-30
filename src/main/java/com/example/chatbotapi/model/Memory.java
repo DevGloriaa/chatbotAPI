@@ -1,18 +1,23 @@
 package com.example.chatbotapi.model;
 
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+
+@Entity
+@Table(name = "memory")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Memory {
-    private String key;
-    private String value;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public Memory() {}
-    public Memory(String key, String value) {
-        this.key = key;
-        this.value = value;
-    }
-
-    public String getKey() { return key; }
-    public void setKey(String key) { this.key = key; }
-
-    public String getValue() { return value; }
-    public void setValue(String value) { this.value = value; }
+    private String userMessage;
+    private String botResponse;
 }
