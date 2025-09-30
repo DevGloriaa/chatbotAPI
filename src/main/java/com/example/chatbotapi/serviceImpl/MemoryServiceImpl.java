@@ -9,6 +9,7 @@ import java.util.List;
 
 @Service
 public class MemoryServiceImpl implements MemoryService {
+
     private final MemoryRepository memoryRepository;
 
     public MemoryServiceImpl(MemoryRepository memoryRepository) {
@@ -16,15 +17,26 @@ public class MemoryServiceImpl implements MemoryService {
     }
 
     @Override
-    public Memory saveMemory(String userMessage, String botResponse) {
+    public Memory saveMemory(String userMessage, String botResponse, String topic) {
         Memory memory = new Memory();
         memory.setUserMessage(userMessage);
         memory.setBotResponse(botResponse);
+        memory.setTopic(topic);
         return memoryRepository.save(memory);
     }
 
     @Override
     public List<Memory> getAllMemories() {
         return memoryRepository.findAll();
+    }
+
+    @Override
+    public List<Memory> getMemoriesByTopic(String topic) {
+        return memoryRepository.findByTopicOrderByCreatedAtDesc(topic);
+    }
+
+    @Override
+    public List<Memory> searchMemories(String keyword) {
+        return memoryRepository.findByUserMessageContainingIgnoreCase(keyword);
     }
 }
