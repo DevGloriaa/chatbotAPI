@@ -8,5 +8,6 @@ import java.util.List;
 public interface MemoryRepository extends JpaRepository<Memory, Long> {
 
     List<Memory> findByTopicOrderByCreatedAtDesc(String topic); // fetch memories by topic
-    List<Memory> findByUserMessageContainingIgnoreCase(String keyword); // search memory by keyword
+    List<Memory> findByUserMessageContainingIgnoreCase(String keyword);
+    List<Memory>findTop5ByOrderByCreatedAtDesc();
 }

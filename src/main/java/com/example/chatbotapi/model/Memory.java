@@ -22,6 +22,6 @@ public class Memory {
 
     private String userMessage;
     private String botResponse;
-    private String topic; // Optional: conversation topic
+    private String topic;
     private LocalDateTime createdAt = LocalDateTime.now();
 }

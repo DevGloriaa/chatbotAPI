@@ -1,5 +1,6 @@
 package com.example.chatbotapi.controller;
 
+import com.example.chatbotapi.dto.AuthResponse;
 import com.example.chatbotapi.dto.LoginRequest;
 import com.example.chatbotapi.dto.RegisterRequest;
 import com.example.chatbotapi.model.User;
@@ -16,23 +17,26 @@ public class AuthController {
     public AuthController(UserService userService) {
         this.userService = userService;
     }
-
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User newUser = userService.register(
                 request.getUsername(),
                 request.getPassword(),
                 request.getDisplayName()
         );
-        return ResponseEntity.ok(newUser);
+
+        String token = userService.generateToken(newUser);
+        return ResponseEntity.ok(new AuthResponse(token, newUser));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         User loggedInUser = userService.login(
                 request.getUsername(),
                 request.getPassword()
         );
-        return ResponseEntity.ok(loggedInUser);
+
+        String token = userService.generateToken(loggedInUser);
+        return ResponseEntity.ok(new AuthResponse(token, loggedInUser));
     }
 }

@@ -4,6 +4,7 @@ import com.example.chatbotapi.dto.ChatResponse;
 import com.example.chatbotapi.dto.Task;
 import com.example.chatbotapi.service.ChatService;
 import com.example.chatbotapi.service.OptimusService;
+import com.example.chatbotapi.serviceImpl.HuggingFaceService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,15 +13,20 @@ import java.util.List;
 public class ChatServiceImpl implements ChatService {
 
     private final OptimusService optimusService;
+    private final HuggingFaceService huggingFaceService;
 
-    public ChatServiceImpl(OptimusService optimusService) {
+    public ChatServiceImpl(OptimusService optimusService,
+                           HuggingFaceService huggingFaceService) {
         this.optimusService = optimusService;
+        this.huggingFaceService = huggingFaceService;
     }
 
     @Override
     public ChatResponse getChatResponse(String message, String authHeader) {
         try {
             String lowerMsg = message.toLowerCase();
+
+
             if (lowerMsg.contains("today's tasks")
                     || lowerMsg.contains("scheduled for today")
                     || lowerMsg.contains("tasks for today")) {
@@ -43,16 +49,15 @@ public class ChatServiceImpl implements ChatService {
 
                     reply.append("\n");
                 }
-
-
                 return new ChatResponse(reply.toString());
-            } else {
-                return new ChatResponse("Sorry, I can only tell you about your tasks for today.");
             }
+
+            String hfReply = huggingFaceService.chatWithHuggingFace(message);
+            return new ChatResponse(hfReply);
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new ChatResponse("Sorry, I couldn’t fetch your tasks right now.");
+            return new ChatResponse("⚠️ Sorry, I couldn’t fetch a response right now.");
         }
     }
 }
