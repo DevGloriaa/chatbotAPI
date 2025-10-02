@@ -17,17 +17,19 @@ public class ChatController {
         this.chatService = chatService;
     }
 
+
     @PostMapping
     public ChatResponse chat(@RequestBody ChatRequest request,
                              @RequestHeader("Authorization") String authHeader) {
-        return chatService.getChatResponse(request.getMessage(), authHeader);
+        String userMessage = request.getMessage();
+        return chatService.getChatResponse(userMessage, authHeader);
     }
 
 
-    @PostMapping("/chat")
+    @PostMapping("/map")
     public ChatResponse chatMap(@RequestBody Map<String, String> payload,
                                 @RequestHeader("Authorization") String authHeader) {
-        String message = payload.get("message");
-        return chatService.getChatResponse(message, authHeader);
+        String userMessage = payload.get("message");
+        return chatService.getChatResponse(userMessage, authHeader);
     }
 }

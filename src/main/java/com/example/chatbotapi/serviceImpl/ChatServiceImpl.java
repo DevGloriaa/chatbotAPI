@@ -4,21 +4,28 @@ import com.example.chatbotapi.dto.ChatResponse;
 import com.example.chatbotapi.dto.Task;
 import com.example.chatbotapi.service.ChatService;
 import com.example.chatbotapi.service.OptimusService;
-import com.example.chatbotapi.serviceImpl.HuggingFaceService;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
     private final OptimusService optimusService;
-    private final HuggingFaceService huggingFaceService;
+    private final RestTemplate restTemplate;
 
-    public ChatServiceImpl(OptimusService optimusService,
-                           HuggingFaceService huggingFaceService) {
+    // Your Google AI API key
+    private static final String GOOGLE_API_KEY = "YOUR_API_KEY";
+    private static final String MODEL = "gemini-2.5-flash";
+    private static final String ENDPOINT = "https://generativelanguage.googleapis.com/v1beta2/models/" + MODEL + ":generate";
+
+    public ChatServiceImpl(OptimusService optimusService) {
         this.optimusService = optimusService;
-        this.huggingFaceService = huggingFaceService;
+        this.restTemplate = new RestTemplate();
     }
 
     @Override
@@ -52,12 +59,41 @@ public class ChatServiceImpl implements ChatService {
                 return new ChatResponse(reply.toString());
             }
 
-            String hfReply = huggingFaceService.chatWithHuggingFace(message);
-            return new ChatResponse(hfReply);
+
+            return callGoogleAI(message);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ChatResponse("⚠️ Sorry, I couldn’t fetch a response right now.");
         }
+    }
+
+    private ChatResponse callGoogleAI(String message) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(GOOGLE_API_KEY);
+
+        String body = "{\n" +
+                "  \"prompt\": {\"text\": \"" + message.replace("\"", "\\\"") + "\"},\n" +
+                "  \"temperature\": 0.8,\n" +
+                "  \"maxOutputTokens\": 150\n" +
+                "}";
+
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(ENDPOINT, request, Map.class);
+
+        if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+            Map<String, Object> bodyMap = response.getBody();
+            if (bodyMap.containsKey("candidates")) {
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) bodyMap.get("candidates");
+                if (!candidates.isEmpty()) {
+                    String output = (String) candidates.get(0).get("output");
+                    return new ChatResponse(output);
+                }
+            }
+        }
+
+        return new ChatResponse("⚠️ Sorry, I couldn’t fetch a response from AI.");
     }
 }
