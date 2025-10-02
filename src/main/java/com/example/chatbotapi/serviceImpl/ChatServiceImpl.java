@@ -4,10 +4,10 @@ import com.example.chatbotapi.dto.ChatResponse;
 import com.example.chatbotapi.dto.Task;
 import com.example.chatbotapi.service.ChatService;
 import com.example.chatbotapi.service.OptimusService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Map;
@@ -18,10 +18,12 @@ public class ChatServiceImpl implements ChatService {
     private final OptimusService optimusService;
     private final RestTemplate restTemplate;
 
-    // Your Google AI API key
-    private static final String GOOGLE_API_KEY = "YOUR_API_KEY";
     private static final String MODEL = "gemini-2.5-flash";
     private static final String ENDPOINT = "https://generativelanguage.googleapis.com/v1beta2/models/" + MODEL + ":generate";
+
+
+    @Value("${GOOGLE_API_KEY}")
+    private String googleApiKey;
 
     public ChatServiceImpl(OptimusService optimusService) {
         this.optimusService = optimusService;
@@ -32,7 +34,6 @@ public class ChatServiceImpl implements ChatService {
     public ChatResponse getChatResponse(String message, String authHeader) {
         try {
             String lowerMsg = message.toLowerCase();
-
 
             if (lowerMsg.contains("today's tasks")
                     || lowerMsg.contains("scheduled for today")
@@ -59,7 +60,6 @@ public class ChatServiceImpl implements ChatService {
                 return new ChatResponse(reply.toString());
             }
 
-
             return callGoogleAI(message);
 
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatResponse callGoogleAI(String message) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(GOOGLE_API_KEY);
+        headers.setBearerAuth(googleApiKey);
 
         String body = "{\n" +
                 "  \"prompt\": {\"text\": \"" + message.replace("\"", "\\\"") + "\"},\n" +
