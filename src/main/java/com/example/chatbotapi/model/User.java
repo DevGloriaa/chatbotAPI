@@ -1,6 +1,7 @@
 package com.example.chatbotapi.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +21,8 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String username;
+    @Email
+    private String email;
 
     @Column(nullable = false)
     private String password;

@@ -22,13 +22,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User register(String username, String password, String displayName) {
-        if (userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username already taken!");
+    public User register(String email, String password, String displayName) {
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already registered");
         }
 
         User user = User.builder()
-                .username(username)
+                .email(email)
                 .password(passwordEncoder.encode(password))
                 .displayName(displayName)
                 .build();
@@ -37,8 +37,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User login(String username, String password) {
-        User user = userRepository.findByUsername(username)
+    public User login(String email, String password) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String generateToken(User user) {
-        String tokenData = user.getUsername() + ":" + System.currentTimeMillis();
+        String tokenData = user.getEmail() + ":" + System.currentTimeMillis();
         return Base64.getEncoder().encodeToString(tokenData.getBytes());
     }
 }

@@ -20,7 +20,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User newUser = userService.register(
-                request.getUsername(),
+                request.getEmail(),
                 request.getPassword(),
                 request.getDisplayName()
         );
@@ -32,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         User loggedInUser = userService.login(
-                request.getUsername(),
+                request.getEmail(),
                 request.getPassword()
         );
 
