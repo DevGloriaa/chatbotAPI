@@ -24,7 +24,7 @@ public class OptimusServiceImpl implements OptimusService {
         try {
             return webClient.get()
                     .uri("/tasks/today")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                    .header(HttpHeaders.AUTHORIZATION, bearerToken)
                     .retrieve()
                     .bodyToFlux(Task.class)
                     .collectList()
