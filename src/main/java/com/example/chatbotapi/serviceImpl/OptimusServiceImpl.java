@@ -21,20 +21,32 @@ public class OptimusServiceImpl implements OptimusService {
 
     @Override
     public List<Task> getTodayTasks(String bearerToken) {
+        if (bearerToken == null || bearerToken.isBlank()) {
+            throw new IllegalArgumentException("Authorization token is missing");
+        }
+
         try {
-            return webClient.get()
+            List<Task> tasks = webClient.get()
                     .uri("/tasks/today")
                     .header(HttpHeaders.AUTHORIZATION, bearerToken)
                     .retrieve()
                     .bodyToFlux(Task.class)
                     .collectList()
                     .block();
+
+            if (tasks == null) {
+                System.err.println("Received null response from Optimus service");
+                return Collections.emptyList();
+            }
+
+            System.out.println("Tasks fetched from Optimus: " + tasks);
+            return tasks;
         } catch (WebClientResponseException e) {
             System.err.println("Error fetching today's tasks: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return Collections.emptyList();
+            throw e;
         } catch (Exception e) {
             System.err.println("Unexpected error fetching today's tasks: " + e.getMessage());
-            return Collections.emptyList();
+            throw new RuntimeException("Failed to fetch tasks from Optimus service", e);
         }
     }
 }

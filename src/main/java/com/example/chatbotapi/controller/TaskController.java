@@ -14,7 +14,6 @@ public class TaskController {
     private final OptimusService optimusService;
 
     public TaskController(OptimusService optimusService) {
-
         this.optimusService = optimusService;
     }
 
@@ -22,5 +21,4 @@ public class TaskController {
     public List<Task> getTodayTasks(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken) {
         return optimusService.getTodayTasks(bearerToken);
     }
-
 }
