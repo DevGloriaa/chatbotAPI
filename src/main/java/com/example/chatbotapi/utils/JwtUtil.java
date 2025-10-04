@@ -2,28 +2,25 @@ package com.example.chatbotapi.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-
-import java.security.Key;
 import java.util.Date;
 
 public class JwtUtil {
-    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+
+    private static final String SECRET = "YourSuperSecretKey12345";
+    private static final long EXPIRATION = 86400000;
 
     public static String generateToken(String email) {
-        long expirationMs = 24 * 60 * 60 * 1000;
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .signWith(SignatureAlgorithm.HS256, SECRET)
                 .compact();
     }
 
-    public static String extractEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
+    public static String getEmailFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET)
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
