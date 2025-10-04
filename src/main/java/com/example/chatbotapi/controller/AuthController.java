@@ -24,11 +24,13 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     public AuthController(UserService userService) {
-
         this.userService = userService;
-
     }
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User newUser = userService.register(
@@ -40,6 +42,7 @@ public class AuthController {
         String token = userService.generateToken(newUser);
         return ResponseEntity.ok(new AuthResponse(token, newUser));
     }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
@@ -50,8 +53,7 @@ public class AuthController {
                     .body(Map.of("error", "User not found"));
         }
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        if (!encoder.matches(request.getPassword(), user.getPassword())) {
+        if (!bCryptPasswordEncoder.matches(request.getPassword(), user.getPassword())) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid credentials"));
@@ -60,8 +62,8 @@ public class AuthController {
         String token = JwtUtil.generateToken(user.getEmail());
         return ResponseEntity.ok(Map.of(
                 "token", token,
-                "email", user.getEmail()
+                "email", user.getEmail(),
+                "displayName", user.getDisplayName()
         ));
     }
-
 }
