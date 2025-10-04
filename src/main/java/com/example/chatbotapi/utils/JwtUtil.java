@@ -9,8 +9,9 @@ import java.util.Date;
 
 public class JwtUtil {
 
-    private static final String SECRET = "Qw8#zT9!kLp3@bXeR1sUvW4mNcY7dGhJ"; // your secret
-    private static final long EXPIRATION = 86400000; // 1 day in ms
+
+    private static final String SECRET = "YourSuperSecure256BitKeyHere1234567890!@#$";
+    private static final long EXPIRATION = 86400000;
 
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
 
