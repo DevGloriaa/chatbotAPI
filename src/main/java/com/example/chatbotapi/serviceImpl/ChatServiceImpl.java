@@ -51,8 +51,8 @@ public class ChatServiceImpl implements ChatService {
                             .append(task.getTime() != null ? task.getTime() + " " : "")
                             .append(task.getTitle());
 
-                    if (task.getDate() != null) {
-                        reply.append(" (").append(task.getDate()).append(")");
+                    if (task.getDueDate() != null) {
+                        reply.append(" (").append(task.getDueDate()).append(")");
                     }
 
                     reply.append("\n");

@@ -10,7 +10,7 @@ public class Task {
     private String description;
     private String priority;
     private String status;
-    private LocalDate date;
+    private LocalDate dueDate;
     private String time;
     private boolean completed;
 }
