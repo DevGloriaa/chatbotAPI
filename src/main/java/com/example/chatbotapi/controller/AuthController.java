@@ -20,42 +20,42 @@ import java.util.Map;
 public class AuthController {
 
     private final UserService userService;
-
     private final UserRepository userRepository;
-
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthController(UserService userService, UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public AuthController(UserService userService, UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        String encodedPassword = bCryptPasswordEncoder.encode(request.getPassword());
-
         User newUser = userService.register(
                 request.getEmail(),
-                encodedPassword,
+                request.getPassword(),
                 request.getDisplayName()
         );
 
-        String token = userService.generateToken(newUser);
+        String token = JwtUtil.generateToken(newUser.getEmail());
+
         return ResponseEntity.ok(new AuthResponse(token, newUser));
     }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
 
         if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "User not found"));
         }
 
-        if (!bCryptPasswordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid credentials"));
         }
 
@@ -67,5 +67,4 @@ public class AuthController {
                 "displayName", user.getDisplayName()
         ));
     }
-
 }
