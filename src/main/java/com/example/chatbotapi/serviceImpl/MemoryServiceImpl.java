@@ -17,13 +17,15 @@ public class MemoryServiceImpl implements MemoryService {
     }
 
     @Override
-    public Memory saveMemory(String userMessage, String botResponse, String topic) {
+    public Memory saveMemory(String userMessage, String botResponse, String topic, String email) {
         Memory memory = new Memory();
         memory.setUserMessage(userMessage);
         memory.setBotResponse(botResponse);
         memory.setTopic(topic);
+        memory.setEmail(email);
         return memoryRepository.save(memory);
     }
+
 
     @Override
     public List<Memory> getAllMemories() {
@@ -39,4 +41,9 @@ public class MemoryServiceImpl implements MemoryService {
     public List<Memory> searchMemories(String keyword) {
         return memoryRepository.findByUserMessageContainingIgnoreCase(keyword);
     }
+    @Override
+    public List<Memory> getMemoriesByEmail(String email) {
+        return memoryRepository.findByEmailOrderByCreatedAtAsc(email);
+    }
+
 }

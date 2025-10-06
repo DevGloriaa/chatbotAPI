@@ -23,5 +23,6 @@ public class Memory {
     private String userMessage;
     private String botResponse;
     private String topic;
+    private String email;
     private LocalDateTime createdAt = LocalDateTime.now();
 }

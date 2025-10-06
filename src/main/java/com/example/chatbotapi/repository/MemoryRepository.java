@@ -10,4 +10,5 @@ public interface MemoryRepository extends JpaRepository<Memory, Long> {
     List<Memory> findByTopicOrderByCreatedAtDesc(String topic); // fetch memories by topic
     List<Memory> findByUserMessageContainingIgnoreCase(String keyword);
     List<Memory>findTop5ByOrderByCreatedAtDesc();
+    List<Memory> findByEmailOrderByCreatedAtAsc(String email);
 }
