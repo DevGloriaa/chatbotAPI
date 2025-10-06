@@ -1,22 +1,19 @@
 package com.example.chatbotapi.dto;
 
-import lombok.Data;
-
-@Data
 public class ChatResponse {
-    private String message;
+    private String text;
 
     public ChatResponse() {}
 
-    public ChatResponse(String message) {
-        this.message = message;
+    public ChatResponse(String text) {
+        this.text = text;
     }
 
-    public String getMessage() {
-        return message;
+    public String getText() {
+        return text;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setText(String text) {
+        this.text = text;
     }
 }
