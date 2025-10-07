@@ -1,24 +1,16 @@
-FROM maven:3.9.4-eclipse-temurin-17 AS builder
+# Use Maven to build the app
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
-
-
-# Preload dependencies
-COPY pom.xml .
-RUN mvn dependency:go-offline -DskipTests
-
-
-# Copy source and build
 COPY . .
-RUN mvn clean package
+RUN mvn clean package -DskipTests
 
-# Stage 2: Lightweight JDK image
-FROM eclipse-temurin:17-jdk-alpine
-VOLUME /tmp
-COPY --from=builder /app/target/*.jar app.jar
+# Use a lightweight JDK to run the built app
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-
-# ✅ Activate the 'production' profile
-ENTRYPOINT ["java", "-jar", "/app.jar", "--spring.profiles.active=production"]
-
-# ✅ Make port visible to Render
+# Expose the port your app runs on
 EXPOSE 8000
+
+# Run the jar file
+ENTRYPOINT ["java", "-jar", "app.jar"]
