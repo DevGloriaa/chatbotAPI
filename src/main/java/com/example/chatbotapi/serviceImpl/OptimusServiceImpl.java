@@ -16,8 +16,11 @@ public class OptimusServiceImpl implements OptimusService {
     private final WebClient webClient;
 
     public OptimusServiceImpl(WebClient.Builder builder) {
-        this.webClient = builder.baseUrl("http://localhost:8081").build();
+        this.webClient = builder
+                .baseUrl("https://taskmanagerapi-1-142z.onrender.com")
+                .build();
     }
+
 
     @Override
     public List<Task> getTodayTasks(String bearerToken) {
