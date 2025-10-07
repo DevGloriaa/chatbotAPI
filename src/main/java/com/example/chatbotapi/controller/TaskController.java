@@ -19,6 +19,9 @@ public class TaskController {
 
     @GetMapping("/today")
     public List<Task> getTodayTasks(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken) {
+        if (!bearerToken.startsWith("Bearer ")) {
+            bearerToken = "Bearer " + bearerToken;
+        }
         return optimusService.getTodayTasks(bearerToken);
     }
 }
