@@ -150,7 +150,7 @@ public class ChatServiceImpl implements ChatService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new ChatResponse("⚠️ Couldn’t connect to Gemini API. Please check your API key or internet connection.");
+            return new ChatResponse("⚠️ Couldn’t connect. Please check your internet connection.");
         }
     }
 }
