@@ -1,6 +1,5 @@
 package com.example.chatbotapi.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,6 +21,5 @@ public class Task {
     private String title;
     private String description;
     private String email;
-    private LocalDate date;
+    private LocalDate dueDate;
 }
-

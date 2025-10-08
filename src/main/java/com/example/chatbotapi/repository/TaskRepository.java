@@ -11,5 +11,6 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findByEmailAndDate(String email, LocalDate date);
+    List<Task> findByEmailAndDueDate(String email, LocalDate dueDate);
+
 }

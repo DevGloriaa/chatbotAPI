@@ -1,7 +1,6 @@
 package com.example.chatbotapi.serviceImpl;
 
 import com.example.chatbotapi.model.Task;
-import com.example.chatbotapi.repository.TaskRepository;
 import com.example.chatbotapi.service.OptimusService;
 import com.example.chatbotapi.utils.JwtUtil;
 import org.springframework.http.HttpHeaders;
@@ -12,18 +11,17 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OptimusServiceImpl implements OptimusService {
 
     private final WebClient webClient;
-    private final TaskRepository taskRepository;
 
-    public OptimusServiceImpl(WebClient.Builder builder, TaskRepository taskRepository) {
+    public OptimusServiceImpl(WebClient.Builder builder) {
         this.webClient = builder
                 .baseUrl("https://taskmanagerapi-1-142z.onrender.com/api")
                 .build();
-        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -35,7 +33,7 @@ public class OptimusServiceImpl implements OptimusService {
             }
 
             String fullToken = bearerToken.startsWith("Bearer ") ? bearerToken : "Bearer " + bearerToken;
-            System.out.println("Fetching tasks with token: " + fullToken);
+            System.out.println("Fetching today's tasks with token: " + fullToken);
 
             List<Task> tasks = webClient.get()
                     .uri("/tasks/today")
@@ -58,8 +56,30 @@ public class OptimusServiceImpl implements OptimusService {
 
     @Override
     public List<Task> getTodayTasksByEmail(String email) {
-        LocalDate today = LocalDate.now();
-        return taskRepository.findByEmailAndDate(email, today);
+        try {
+            LocalDate today = LocalDate.now();
+            System.out.println("📅 Fetching tasks for " + email + " on " + today);
+
+            List<Task> allTasks = webClient.get()
+                    .uri("/tasks/tasks/by-email/{email}", email)
+                    .retrieve()
+                    .bodyToFlux(Task.class)
+                    .collectList()
+                    .block();
+
+            if (allTasks == null) return Collections.emptyList();
+
+            return allTasks.stream()
+                    .filter(task -> today.equals(task.getDueDate()))
+                    .collect(Collectors.toList());
+
+        } catch (WebClientResponseException e) {
+            System.err.println("❌ Error fetching tasks by email: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
+            return Collections.emptyList();
+        } catch (Exception e) {
+            System.err.println("❌ Unexpected error fetching tasks by email: " + e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     @Override

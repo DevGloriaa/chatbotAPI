@@ -1,5 +1,6 @@
 package com.example.chatbotapi.dto;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 import java.time.LocalDate;
 
