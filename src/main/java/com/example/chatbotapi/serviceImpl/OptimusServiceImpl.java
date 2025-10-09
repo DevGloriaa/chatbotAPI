@@ -20,7 +20,7 @@ public class OptimusServiceImpl implements OptimusService {
 
     public OptimusServiceImpl(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("https://taskmanagerapi-1-142z.onrender.com/api")
+                .baseUrl("https://taskmanagerapi-1-142z.onrender.com")
                 .build();
     }
 
@@ -53,15 +53,17 @@ public class OptimusServiceImpl implements OptimusService {
             return Collections.emptyList();
         }
     }
-
     @Override
-    public List<Task> getTodayTasksByEmail(String email) {
+    public List<Task> getTodayTasksByEmail(String email, String bearerToken) {
         try {
             LocalDate today = LocalDate.now();
+            String fullToken = bearerToken.startsWith("Bearer ") ? bearerToken : "Bearer " + bearerToken;
+
             System.out.println("📅 Fetching tasks for " + email + " on " + today);
 
             List<Task> allTasks = webClient.get()
                     .uri("/tasks/tasks/by-email/{email}", email)
+                    .header(HttpHeaders.AUTHORIZATION, fullToken)
                     .retrieve()
                     .bodyToFlux(Task.class)
                     .collectList()

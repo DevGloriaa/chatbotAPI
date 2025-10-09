@@ -17,7 +17,7 @@ public class TaskController {
     private final OptimusService optimusService;
 
     public TaskController(OptimusService optimusService) {
-       this.optimusService = optimusService;
+        this.optimusService = optimusService;
     }
 
     @GetMapping("/today")
@@ -31,12 +31,17 @@ public class TaskController {
             String token = authHeader.substring(7);
             String email = JwtUtil.getEmailFromToken(token);
 
-            List<Task> tasks = optimusService.getTodayTasksByEmail(email);
+            System.out.println("📅 Fetching tasks for " + email + " on " + java.time.LocalDate.now());
+
+
+            List<Task> tasks = optimusService.getTodayTasksByEmail(email, authHeader);
+
             return ResponseEntity.ok(tasks);
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Unauthorized: " + e.getMessage());
+            System.err.println("❌ Error fetching tasks: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching today's tasks: " + e.getMessage());
         }
     }
 }
