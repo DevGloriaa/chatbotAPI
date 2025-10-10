@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -37,7 +38,6 @@ public class ChatServiceImpl implements ChatService {
         this.restTemplate = new RestTemplate();
         this.optimusBaseUrl = optimusBaseUrl;
         this.googleApiKey = googleApiKey;
-
         this.ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/"
                 + MODEL + ":generateContent?key=" + googleApiKey;
 
@@ -53,14 +53,14 @@ public class ChatServiceImpl implements ChatService {
             String botReply;
 
             if (lowerMsg.contains("today") && lowerMsg.contains("task")) {
-                botReply = handleTodayTasks(message, kosBearerToken);
+                botReply = handleTodayTasks(kosBearerToken);
             } else {
-                botReply = callGoogleAI(message).getText();
+                String context = buildMemoryContext(kosBearerToken);
+                botReply = callGoogleAI(context + "\nUser: " + message).getText();
             }
 
 
             try {
-                String email = optimusService.getEmailFromToken(kosBearerToken);
                 saveMemory(message, botReply, "general", kosBearerToken);
             } catch (Exception e) {
                 System.err.println("⚠️ Skipped memory save: Invalid token");
@@ -74,27 +74,37 @@ public class ChatServiceImpl implements ChatService {
         }
     }
 
-    private String handleTodayTasks(String message, String kosBearerToken) {
+    private String buildMemoryContext(String kosBearerToken) {
+        try {
+            String email = optimusService.getEmailFromToken(kosBearerToken);
+            List<Memory> recent = memoryRepository.findTop5ByEmailOrderByCreatedAtDesc(email);
+
+            return recent.stream()
+                    .map(m -> "User asked: " + m.getUserMessage() + " | Kos answered: " + m.getBotResponse())
+                    .collect(Collectors.joining("\n"));
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String handleTodayTasks(String kosBearerToken) {
         try {
             String email = optimusService.getEmailFromToken(kosBearerToken);
             String optimusToken = optimusService.generateOptimusToken(email);
             List<Task> tasks = optimusService.getTodayTasks(optimusToken);
 
-            if (tasks == null || tasks.isEmpty()) {
+            if (tasks == null || tasks.isEmpty())
                 return "✅ You don’t have any tasks scheduled for today. 🎉";
-            }
 
             StringBuilder sb = new StringBuilder("🗓 Here’s your schedule for today:\n\n");
             for (Task task : tasks) {
                 sb.append("• ").append(task.getTitle());
-                if (task.getDueDate() != null)
-                    sb.append(" (Due: ").append(task.getDueDate()).append(")");
+                if (task.getDueDate() != null) sb.append(" (Due: ").append(task.getDueDate()).append(")");
                 if (task.getDescription() != null && !task.getDescription().isEmpty())
                     sb.append("\n  ↳ ").append(task.getDescription());
                 sb.append("\n\n");
             }
             return sb.toString();
-
         } catch (Exception e) {
             System.err.println("⚠️ Could not fetch tasks: " + e.getMessage());
             return "⚠️ Sorry, I couldn’t fetch your tasks right now.";
@@ -104,9 +114,7 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public void saveMemory(String userMessage, String botResponse, String topic, String bearerToken) {
         try {
-            if (botResponse.length() > 2000)
-                botResponse = botResponse.substring(0, 2000);
-
+            if (botResponse.length() > 2000) botResponse = botResponse.substring(0, 2000);
             String email = optimusService.getEmailFromToken(bearerToken);
 
             Memory memory = new Memory();
@@ -159,15 +167,12 @@ public class ChatServiceImpl implements ChatService {
                     if (!candidates.isEmpty()) {
                         Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
                         List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-                        if (!parts.isEmpty()) {
-                            return new ChatResponse((String) parts.get(0).get("text"));
-                        }
+                        if (!parts.isEmpty()) return new ChatResponse((String) parts.get(0).get("text"));
                     }
                 }
             }
 
             return new ChatResponse("⚠️ Gemini didn’t return any text output.");
-
         } catch (Exception e) {
             e.printStackTrace();
             return new ChatResponse("⚠️ Couldn’t connect. Check your internet connection.");
