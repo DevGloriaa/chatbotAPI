@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
@@ -15,11 +16,18 @@ import java.time.LocalDate;
 public class Task {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
 
     private String title;
     private String description;
     private String email;
     private LocalDate dueDate;
+
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null || this.id.isEmpty()) {
+            this.id = UUID.randomUUID().toString();
+        }
+    }
 }

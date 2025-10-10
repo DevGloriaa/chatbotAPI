@@ -15,14 +15,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Memory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userMessage;
-    private String botResponse;
-    private String topic;
     private String email;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private String userMessage;
+
+    @Column(length = 2000)
+    private String botResponse;
+
+    private String topic;
+    private String memoryType;
+    private Double importance;
+    private LocalDateTime createdAt;
+
+
 }

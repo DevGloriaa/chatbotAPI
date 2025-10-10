@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,49 +50,54 @@ public class ChatServiceImpl implements ChatService {
     public ChatResponse getChatResponse(String message, String kosBearerToken) {
         try {
             String lowerMsg = message.toLowerCase();
+            String botReply;
 
-            // TASKS QUERY
             if (lowerMsg.contains("today") && lowerMsg.contains("task")) {
-
-                // 1. Extract email from Kos token
-                String email = optimusService.getEmailFromToken(kosBearerToken);
-
-                // 2. Generate Optimus token for that email
-                String optimusToken = optimusService.generateOptimusToken(email);
-
-                // 3. Fetch today's tasks from Optimus
-                List<Task> tasks = optimusService.getTodayTasks(optimusToken);
-
-                String botReply;
-                if (tasks == null || tasks.isEmpty()) {
-                    botReply = "✅ You don’t have any tasks scheduled for today. 🎉";
-                } else {
-                    StringBuilder sb = new StringBuilder("🗓 Here’s your schedule for today:\n\n");
-                    for (Task task : tasks) {
-                        sb.append("• ").append(task.getTitle());
-                        if (task.getDueDate() != null)
-                            sb.append(" (Due: ").append(task.getDueDate()).append(")");
-                        if (task.getDescription() != null && !task.getDescription().isEmpty())
-                            sb.append("\n  ↳ ").append(task.getDescription());
-                        sb.append("\n\n");
-                    }
-                    botReply = sb.toString();
-                }
-
-                // 4. Save memory
-                saveMemory(message, botReply, "tasks", kosBearerToken);
-
-                return new ChatResponse(botReply);
+                botReply = handleTodayTasks(message, kosBearerToken);
+            } else {
+                botReply = callGoogleAI(message).getText();
             }
 
-            // GENERAL QUERY (Google AI)
-            ChatResponse aiResponse = callGoogleAI(message);
-            saveMemory(message, aiResponse.getText(), "general", kosBearerToken);
-            return aiResponse;
+
+            try {
+                String email = optimusService.getEmailFromToken(kosBearerToken);
+                saveMemory(message, botReply, "general", kosBearerToken);
+            } catch (Exception e) {
+                System.err.println("⚠️ Skipped memory save: Invalid token");
+            }
+
+            return new ChatResponse(botReply);
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ChatResponse("⚠️ Sorry, I couldn’t process your request right now.");
+        }
+    }
+
+    private String handleTodayTasks(String message, String kosBearerToken) {
+        try {
+            String email = optimusService.getEmailFromToken(kosBearerToken);
+            String optimusToken = optimusService.generateOptimusToken(email);
+            List<Task> tasks = optimusService.getTodayTasks(optimusToken);
+
+            if (tasks == null || tasks.isEmpty()) {
+                return "✅ You don’t have any tasks scheduled for today. 🎉";
+            }
+
+            StringBuilder sb = new StringBuilder("🗓 Here’s your schedule for today:\n\n");
+            for (Task task : tasks) {
+                sb.append("• ").append(task.getTitle());
+                if (task.getDueDate() != null)
+                    sb.append(" (Due: ").append(task.getDueDate()).append(")");
+                if (task.getDescription() != null && !task.getDescription().isEmpty())
+                    sb.append("\n  ↳ ").append(task.getDescription());
+                sb.append("\n\n");
+            }
+            return sb.toString();
+
+        } catch (Exception e) {
+            System.err.println("⚠️ Could not fetch tasks: " + e.getMessage());
+            return "⚠️ Sorry, I couldn’t fetch your tasks right now.";
         }
     }
 
@@ -111,7 +115,18 @@ public class ChatServiceImpl implements ChatService {
             memory.setTopic(topic != null ? topic : "general");
             memory.setEmail(email);
             memory.setCreatedAt(LocalDateTime.now());
+
+            if (userMessage.toLowerCase().contains("remember") || userMessage.toLowerCase().contains("note")) {
+                memory.setMemoryType("long-term");
+                memory.setImportance(1.0);
+            } else {
+                memory.setMemoryType("short-term");
+                memory.setImportance(0.5);
+            }
+
             memoryRepository.save(memory);
+            System.out.println("💾 Saved " + memory.getMemoryType() + " memory for " + email);
+
         } catch (Exception e) {
             System.err.println("⚠️ Failed to save memory: " + e.getMessage());
         }
@@ -155,7 +170,7 @@ public class ChatServiceImpl implements ChatService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return new ChatResponse("⚠️ Couldn’t connect. Check your internet connection");
+            return new ChatResponse("⚠️ Couldn’t connect. Check your internet connection.");
         }
     }
 }
