@@ -48,13 +48,21 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ChatResponse getChatResponse(String message, String bearerToken) {
+    public ChatResponse getChatResponse(String message, String kosBearerToken) {
         try {
             String lowerMsg = message.toLowerCase();
 
-
+            // TASKS QUERY
             if (lowerMsg.contains("today") && lowerMsg.contains("task")) {
-                List<Task> tasks = fetchTodayTasks(bearerToken);
+
+                // 1. Extract email from Kos token
+                String email = optimusService.getEmailFromToken(kosBearerToken);
+
+                // 2. Generate Optimus token for that email
+                String optimusToken = optimusService.generateOptimusToken(email);
+
+                // 3. Fetch today's tasks from Optimus
+                List<Task> tasks = optimusService.getTodayTasks(optimusToken);
 
                 String botReply;
                 if (tasks == null || tasks.isEmpty()) {
@@ -72,42 +80,21 @@ public class ChatServiceImpl implements ChatService {
                     botReply = sb.toString();
                 }
 
-                saveMemory(message, botReply, "tasks", bearerToken);
+                // 4. Save memory
+                saveMemory(message, botReply, "tasks", kosBearerToken);
+
                 return new ChatResponse(botReply);
             }
 
-
+            // GENERAL QUERY (Google AI)
             ChatResponse aiResponse = callGoogleAI(message);
-            saveMemory(message, aiResponse.getText(), "general", bearerToken);
+            saveMemory(message, aiResponse.getText(), "general", kosBearerToken);
             return aiResponse;
 
         } catch (Exception e) {
             e.printStackTrace();
             return new ChatResponse("⚠️ Sorry, I couldn’t process your request right now.");
         }
-    }
-
-    private List<Task> fetchTodayTasks(String bearerToken) {
-        try {
-            String url = optimusBaseUrl + "/tasks/today";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(bearerToken);
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<Task[]> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    entity,
-                    Task[].class
-            );
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return Arrays.asList(response.getBody());
-            }
-        } catch (Exception e) {
-            System.err.println("⚠️ Failed to fetch today's tasks: " + e.getMessage());
-        }
-        return List.of();
     }
 
     @Override

@@ -14,33 +14,28 @@ import org.springframework.web.client.RestTemplate;
 public class TaskController {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private static final String OPTIMUS_URL = "https://taskmanagerapi-1-142z.onrender.com/api/tasks/today";
+    private static final String OPTIMUS_URL = "https://taskmanagerapi-2-s90z.onrender.com/tasks/today";
 
     @GetMapping("/today")
-    public ResponseEntity<String> getTodayTasks(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getTodayTasks(@RequestHeader("Authorization") String authHeader) {
         System.out.println("🚀 Received request to /api/tasks/today");
 
         try {
-
-            String Token = authHeader.replace("Bearer ", "").trim();
-            System.out.println("🔐 Incoming Kos token: " + Token);
-
-
-            String email = JwtUtil.getEmailFromToken(Token);
-            System.out.println("📧 Extracted email from token: " + email);
-
-            if (email == null) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("❌ Invalid Kos token: email not found.");
+                        .body("❌ Authorization header missing or invalid.");
             }
 
+            String kosToken = authHeader.substring(7).trim();
+            System.out.println("🔐 Incoming Kos token: " + kosToken);
 
-            String optimusToken = JwtUtil.generateToken(email);
-            System.out.println("🎟️ Generated Optimus token: " + optimusToken);
+            // Optional: extract email if you need it for logging or token mapping
+            String email = JwtUtil.getEmailFromToken(kosToken);
+            System.out.println("📧 Extracted email from token: " + email);
 
 
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Authorization", "Bearer " + optimusToken);
+            headers.set("Authorization", "Bearer " + kosToken);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -54,8 +49,8 @@ public class TaskController {
                     Task[].class
             );
 
-
             Task[] tasks = response.getBody();
+
             if (tasks == null || tasks.length == 0) {
                 return ResponseEntity.ok("✅ You don’t have any tasks today.");
             }
@@ -68,8 +63,8 @@ public class TaskController {
             return ResponseEntity.ok(sb.toString());
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            System.out.println("❌ Optimus API error: " + e.getStatusCode());
-            System.out.println("🧾 Response body: " + e.getResponseBodyAsString());
+            System.err.println("❌ Optimus API error: " + e.getStatusCode());
+            System.err.println("🧾 Response body: " + e.getResponseBodyAsString());
 
             return ResponseEntity.status(e.getStatusCode())
                     .body("⚠️ Optimus API returned an error: " + e.getStatusCode() +

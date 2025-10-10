@@ -20,20 +20,16 @@ public class OptimusServiceImpl implements OptimusService {
 
     public OptimusServiceImpl(WebClient.Builder builder) {
         this.webClient = builder
-                .baseUrl("https://taskmanagerapi-1-142z.onrender.com")
+                .baseUrl("https://taskmanagerapi-2-s90z.onrender.com")
                 .build();
     }
 
     @Override
     public List<Task> getTodayTasks(String bearerToken) {
         try {
-            if (bearerToken == null || bearerToken.isEmpty()) {
-                System.err.println("⚠️ Bearer token missing!");
-                return Collections.emptyList();
-            }
+            if (bearerToken == null || bearerToken.isEmpty()) return Collections.emptyList();
 
             String fullToken = bearerToken.startsWith("Bearer ") ? bearerToken : "Bearer " + bearerToken;
-            System.out.println("Fetching today's tasks with token: " + fullToken);
 
             List<Task> tasks = webClient.get()
                     .uri("/tasks/today")
@@ -53,13 +49,12 @@ public class OptimusServiceImpl implements OptimusService {
             return Collections.emptyList();
         }
     }
+
     @Override
     public List<Task> getTodayTasksByEmail(String email, String bearerToken) {
         try {
             LocalDate today = LocalDate.now();
             String fullToken = bearerToken.startsWith("Bearer ") ? bearerToken : "Bearer " + bearerToken;
-
-            System.out.println("📅 Fetching tasks for " + email + " on " + today);
 
             List<Task> allTasks = webClient.get()
                     .uri("/tasks/tasks/by-email/{email}", email)
@@ -87,5 +82,16 @@ public class OptimusServiceImpl implements OptimusService {
     @Override
     public String getEmailFromToken(String bearerToken) {
         return JwtUtil.getEmailFromToken(bearerToken);
+    }
+
+
+    @Override
+    public String generateOptimusToken(String email) {
+        if (email == null || email.isEmpty()) return null;
+
+
+        String optimusToken = JwtUtil.generateToken(email);
+        System.out.println("🎟️ Generated Optimus token for " + email + ": " + optimusToken);
+        return optimusToken;
     }
 }

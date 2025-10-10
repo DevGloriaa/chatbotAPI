@@ -28,7 +28,10 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList(
                             "http://localhost:3000",
-                            "https://your-frontend-domain.vercel.app"
+                            "http://localhost:5173",
+                            "https://your-frontend-domain.vercel.app",
+                            "https://taskmanagerapi-2-s90z.onrender.com"
+
                     ));
                     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(Arrays.asList("*"));
@@ -37,9 +40,17 @@ public class SecurityConfig {
                 }))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // allow unauthenticated endpoints
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/memories/**").permitAll()
+
+
+                        .requestMatchers("/api/chat/**").permitAll()
+                        .requestMatchers("/api/memory/**").permitAll()
+
+
+                        .requestMatchers("/api/tasks/**").permitAll()
+
+
                         .anyRequest().authenticated()
                 );
 
@@ -52,6 +63,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
+                "http://localhost:5173",
                 "https://your-frontend-domain.vercel.app"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
