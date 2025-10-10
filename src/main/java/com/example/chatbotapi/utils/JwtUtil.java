@@ -9,12 +9,15 @@ import java.util.Date;
 
 public class JwtUtil {
 
-    private static final String SECRET = System.getenv("JWT_SECRET") != null
-            ? System.getenv("JWT_SECRET")
-            : "SuperSecureSharedSecretForKosAndOptimus123!@";
 
-    private static final long EXPIRATION = 86400000; // 1 day
+    private static final String SECRET = "SuperSecureSharedSecretForKosAndOptimus123!@";
+    private static final long EXPIRATION = 86400000;
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes());
+
+    static {
+
+        System.out.println("🔑 [KOS] Active JWT Secret: " + SECRET);
+    }
 
     public static String generateToken(String email) {
         return Jwts.builder()
