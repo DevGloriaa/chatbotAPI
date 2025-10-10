@@ -34,6 +34,7 @@ public class TaskController {
                         .body("❌ Invalid Kos token: email not found.");
             }
 
+
             String optimusToken = JwtUtil.generateToken(email);
             System.out.println("🎟️ Generated Optimus token: " + optimusToken);
 
@@ -52,6 +53,7 @@ public class TaskController {
                     entity,
                     Task[].class
             );
+
 
             Task[] tasks = response.getBody();
             if (tasks == null || tasks.length == 0) {
