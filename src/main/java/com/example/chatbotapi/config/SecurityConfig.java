@@ -29,7 +29,7 @@ public class SecurityConfig {
                     config.setAllowedOrigins(Arrays.asList(
                             "http://localhost:3000",
                             "http://localhost:5173",
-                            "https://your-frontend-domain.vercel.app",
+                            "https://koschatbot.vercel.app",
                             "https://taskmanagerapi-2-s90z.onrender.com"
 
                     ));
